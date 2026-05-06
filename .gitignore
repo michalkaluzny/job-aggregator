@@ -29,3 +29,9 @@ htmlcov/
 
 # mypy
 .mypy_cache/
+
+# Personal notes
+CLAUDE.md
+NOTES.md
+TODO.md
+.notes/
