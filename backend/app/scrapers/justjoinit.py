@@ -34,6 +34,7 @@ def main():
     print(f"Title: {first['title']}")
     print(f"Company: {first['companyName']}")
     print(f"City: {first['city']}")
+    print(offers[0])
 
 if __name__ == '__main__':
     main()
