@@ -11,27 +11,27 @@ class JustJoinItScraper:
 
         while len(all_offers) < self.max_offers:
             response = httpx.get(self.BASE_URL, params={'itemsCount': self.page_size, 'from': from_index})
-            if response.status_code == 200:
-                try:
-                    data = response.json()
-                    offers = data['data']
-
-                    if not offers:
-                        print('No offers found')
-                        break
-
-                    for raw in offers:
-                        try:
-                            all_offers.append(JobOffer.from_api(raw))
-                        except Exception as e:
-                            print(f"Failed to parse offer {raw.get('guid', 'unknown')} : {e}")
-                    from_index += self.page_size
-                except Exception as e:
-                    print(e)
-                    break
-            else:
+            if response.status_code != 200:
                 print(response.status_code)
+                return []
+            try:
+                data = response.json()
+                offers = data['data']
+
+                if not offers:
+                    print('No offers found')
+                    break
+
+                for raw in offers:
+                    try:
+                        all_offers.append(JobOffer.from_api(raw))
+                    except Exception as e:
+                        print(f"Failed to parse offer {raw.get('guid', 'unknown')} : {e}")
+                from_index += self.page_size
+            except Exception as e:
+                print(e)
                 break
+
         return all_offers[:self.max_offers]
 
 def main():
