@@ -15,7 +15,7 @@ class LocationDB(Base):
     latitude: Mapped[float | None]
     longitude: Mapped[float | None]
 
-    offer: Mapped["JobOfferDB"] = relationship(back_populates="location")
+    offer: Mapped["JobOfferDB"] = relationship(back_populates="locations")
 
 class JobOfferDB(Base):
     __tablename__ = "offers"
