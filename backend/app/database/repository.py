@@ -17,9 +17,9 @@ def save_offers(offers: list[JobOffer]) -> int:
             if existing is not None:
                 continue
 
-        db_offer = pydantic_to_db(offer)
-        session.add(db_offer)
-        new_count += 1
+            db_offer = pydantic_to_db(offer)
+            session.add(db_offer)
+            new_count += 1
 
         session.commit()
     return new_count
