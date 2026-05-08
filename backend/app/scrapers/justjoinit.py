@@ -1,5 +1,6 @@
 import httpx
 from app.models.job_offer import JobOffer
+from app.database.repository import save_offers
 class JustJoinItScraper:
 
     BASE_URL = 'https://justjoin.it/api/candidate-api/offers'
@@ -54,20 +55,21 @@ def main():
         print("No offers to display")
         return
 
+    print(f"Found {len(offers)} offers from API")
+
+    #Save to databse
+    new_count = save_offers(offers)
+    duplicates = len(offers) - new_count
+
+    print(f"Saved {new_count} new offers to database")
+    print(f"Skipped {duplicates} duplicates")
+
     first = offers[0]
-    print(f"fetched {len(offers)} offers")
-    print(f"First offer: ")
-    print(f"Title: {first.title}")
-    print(f"Company: {first.company_name}")
-    print(f"City: {first.locations[0].city}")
-    print(f"experience level: {first.experience_level}")
+    print(f"\nFirst offer: {first.title} @ {first.company_name}")
+    print(f"  Location: {first.locations[0].city}")
+    print(f"  URL: {first.url}")
 
-    for i, offer in enumerate(offers, 1):
 
-        if offer.salary_from:
-            print(f'Salary for offer {i}: {offer.salary_from} - {offer.salary_to} : {offer.salary_currency}')
-        else:
-            print(f'No info about salary for offer {i}')
 
 if __name__ == '__main__':
     main()
