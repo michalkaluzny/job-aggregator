@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app.database.db import SessionLocal
 from app.models.job_offer import JobOffer
 from app.models.job_offer_db import JobOfferDB, LocationDB
+from sqlalchemy import select
 
 def save_offers(offers: list[JobOffer]) -> int:
     """
@@ -56,4 +57,41 @@ def pydantic_to_db(offer: JobOffer) -> JobOfferDB:
         apply_url=offer.apply_url,
         locations=db_locations,
     )
+
+def get_offers(
+    experience_level: str | None = None,
+    workplace_type: str | None = None,
+    working_time: str | None = None,
+    city: str | None = None,
+    skill: str | None = None,
+    limit: int = 100,
+) -> list[JobOffer]:
+    """Get offers from database with optional filters."""
+    with SessionLocal() as session:
+        stmt = select(JobOfferDB)
+
+        if experience_level:
+            stmt = stmt.where(JobOfferDB.experience_level == experience_level)
+
+        if workplace_type:
+            stmt = stmt.where(JobOfferDB.workplace_type == workplace_type)
+
+        if working_time:
+            stmt = stmt.where(JobOfferDB.working_time == working_time)
+
+        if skill:
+            stmt = stmt.where(JobOfferDB.required_skills.contains(skill))
+
+        if city:
+            stmt = (
+                stmt
+                .join(LocationDB, LocationDB.offer_guid == JobOfferDB.guid)
+                .where(LocationDB.city == city)
+                .distinct()
+            )
+
+        stmt = stmt.limit(limit)
+
+        return list(session.execute(stmt).scalars().all())
+
 

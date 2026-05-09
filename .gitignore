@@ -35,3 +35,8 @@ CLAUDE.md
 NOTES.md
 TODO.md
 .notes/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
