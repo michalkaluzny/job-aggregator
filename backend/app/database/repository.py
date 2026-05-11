@@ -1,9 +1,8 @@
-from sqlalchemy.orm import Session
-
 from app.database.db import SessionLocal
 from app.models.job_offer import JobOffer
 from app.models.job_offer_db import JobOfferDB, LocationDB
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 def save_offers(offers: list[JobOffer]) -> int:
     """
@@ -93,5 +92,15 @@ def get_offers(
         stmt = stmt.limit(limit)
 
         return list(session.execute(stmt).scalars().all())
+
+def get_offer_by_guid(guid: str) -> JobOfferDB | None:
+    """Get a single offer by its GUID, or None if not found."""
+    with SessionLocal() as session:
+        stmt = (
+            select(JobOfferDB)
+            .where(JobOfferDB.guid == guid)
+            .options(selectinload(JobOfferDB.locations))
+        )
+        return session.execute(stmt).scalars().one_or_none()
 
 
