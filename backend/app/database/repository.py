@@ -67,7 +67,7 @@ def get_offers(
 ) -> list[JobOffer]:
     """Get offers from database with optional filters."""
     with SessionLocal() as session:
-        stmt = select(JobOfferDB)
+        stmt = select(JobOfferDB).options(selectinload(JobOfferDB.locations))
 
         if experience_level:
             stmt = stmt.where(JobOfferDB.experience_level == experience_level)
