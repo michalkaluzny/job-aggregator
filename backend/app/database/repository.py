@@ -1,7 +1,7 @@
 from app.database.db import SessionLocal
 from app.models.job_offer import JobOffer
 from app.models.job_offer_db import JobOfferDB, LocationDB
-from sqlalchemy import select
+from sqlalchemy import select, func, desc, asc
 from sqlalchemy.orm import selectinload
 
 def save_offers(offers: list[JobOffer]) -> int:
@@ -63,23 +63,35 @@ def get_offers(
     working_time: str | None = None,
     city: str | None = None,
     skill: str | None = None,
-    limit: int = 100,
-) -> list[JobOffer]:
-    """Get offers from database with optional filters."""
+    sort_by: str = "published_at",
+    order: str = "desc",
+    offset: int = 0,
+    limit: int = 20,
+) -> tuple[list[JobOffer], int]:
+    """
+    Get offers from database with filters, sorting and pagination.
+    Returns (offers, total count).
+    """
     with SessionLocal() as session:
         stmt = select(JobOfferDB).options(selectinload(JobOfferDB.locations))
+        count_stmt = select(func.count(JobOfferDB.guid))
 
+        filters = []
         if experience_level:
-            stmt = stmt.where(JobOfferDB.experience_level == experience_level)
+            filters.append(JobOfferDB.experience_level == experience_level)
 
         if workplace_type:
-            stmt = stmt.where(JobOfferDB.workplace_type == workplace_type)
+            filters.append(JobOfferDB.workplace_type == workplace_type)
 
         if working_time:
-            stmt = stmt.where(JobOfferDB.working_time == working_time)
+            filters.append(JobOfferDB.working_time == working_time)
 
         if skill:
-            stmt = stmt.where(JobOfferDB.required_skills.contains(skill))
+            filters.append(JobOfferDB.required_skills.contains(skill))
+
+        for f in filters:
+            stmt = stmt.where(f)
+            count_stmt = count_stmt.where(f)
 
         if city:
             stmt = (
@@ -88,10 +100,26 @@ def get_offers(
                 .where(LocationDB.city == city)
                 .distinct()
             )
+            count_stmt = (
+                count_stmt
+                .join(LocationDB, LocationDB.offer_guid == JobOfferDB.guid)
+                .where(LocationDB.city == city)
+            )
+
+        sort_column = getattr(JobOfferDB, sort_by, JobOfferDB.published_at)
+        if order == "desc":
+            stmt = stmt.order_by(desc(sort_column))
+        else:
+            stmt = stmt.order_by(asc(sort_column))
+
+        stmt = stmt.offset(offset).limit(limit)
 
         stmt = stmt.limit(limit)
 
-        return list(session.execute(stmt).scalars().all())
+        offers = list(session.execute(stmt).scalars().all())
+        total = session.execute(count_stmt).scalar_one()
+
+        return offers, total
 
 def get_offer_by_guid(guid: str) -> JobOfferDB | None:
     """Get a single offer by its GUID, or None if not found."""
