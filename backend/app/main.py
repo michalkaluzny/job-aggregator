@@ -1,6 +1,8 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from app.models.job_offer_response import JobOfferResponse
 from app.database.repository import get_offer_by_guid, get_offers
+from app.models.paginated_response import PaginatedOfferResponse
+import math
 
 app = FastAPI(
     title="Job Aggregator API",
@@ -16,25 +18,43 @@ def root():
 def health():
     return {"status": "ok"}
 
-@app.get("/offers", response_model=list[JobOfferResponse])
+@app.get("/offers", response_model=PaginatedOfferResponse)
 def list_offers(
     experience_level: str | None = None,
     workplace_type: str | None = None,
     working_time: str | None = None,
     city: str | None = None,
     skill: str | None = None,
-    limit: int = 100,
+    sort_by: str = "published_at",
+    order: str = "desc",
+    page: int = Query(1, ge=1),
+    size: int = Query(20, ge=1, le=100),
 ):
-    offers = get_offers(
+    """List all offers with filters, sorting and pagination"""
+    offset = (page - 1) * size
+
+
+    offers, total = get_offers(
         experience_level=experience_level,
         workplace_type=workplace_type,
         working_time=working_time,
         city=city,
         skill=skill,
-        limit=limit
+        sort_by=sort_by,
+        order=order,
+        offset=offset,
+        limit=size,
     )
 
-    return offers
+    pages = math.ceil(total/size) if total > 0 else 0
+
+    return PaginatedOfferResponse(
+        items=offers,
+        total=total,
+        page=page,
+        size=size,
+        pages=pages,
+    )
 
 
 
