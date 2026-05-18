@@ -40,3 +40,7 @@ TODO.md
 *.db
 *.sqlite
 *.sqlite3
+data/
+
+# macOS
+.DS_Store
