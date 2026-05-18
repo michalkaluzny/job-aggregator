@@ -9,7 +9,7 @@ class JustJoinItScraper:
         self.page_size = page_size
 
     def fetch_page(self, from_index: int) -> list[JobOffer]:
-        """Pobiera i parsuje JEDNĄ stronę ofert. Fetch and parse one page of offers. """
+        """Fetch and parse one page of offers. """
         response = httpx.get(
             self.BASE_URL,
             params={"itemsCount": self.page_size, "from": from_index}
