@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 from app.models.job_offer_response import JobOfferResponse
 from app.database.repository import get_offer_by_guid, get_offers
 from app.models.paginated_response import PaginatedOfferResponse
@@ -8,6 +9,13 @@ app = FastAPI(
     title="Job Aggregator API",
     description="Aggregates software engineering job offers",
     version="0.1.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 @app.get("/")
