@@ -79,7 +79,8 @@ def get_offers(
         filters = []
         if experience_level:
             filters.append(JobOfferDB.experience_level == experience_level)
-
+        else:
+            filters.append(JobOfferDB.experience_level.in_(["junior", "intern"]))
         if workplace_type:
             filters.append(JobOfferDB.workplace_type == workplace_type)
 
@@ -113,8 +114,6 @@ def get_offers(
             stmt = stmt.order_by(asc(sort_column))
 
         stmt = stmt.offset(offset).limit(limit)
-
-        stmt = stmt.limit(limit)
 
         offers = list(session.execute(stmt).scalars().all())
         total = session.execute(count_stmt).scalar_one()
