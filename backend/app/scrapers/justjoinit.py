@@ -22,6 +22,9 @@ class JustJoinItScraper:
         data = response.json()
         raw_offers = data["data"]
 
+        if not raw_offers:
+            return []
+
         parsed = []
         for raw in raw_offers:
             try:
@@ -49,8 +52,7 @@ class JustJoinItScraper:
 
 def main():
     scraper = JustJoinItScraper()
-    offers = scraper.fetch_offers(100)
-
+    offers = scraper.fetch_offers(1000)
     if not offers:
         print("No offers to display")
         return
