@@ -42,5 +42,9 @@ TODO.md
 *.sqlite3
 data/
 
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
 # macOS
 .DS_Store
