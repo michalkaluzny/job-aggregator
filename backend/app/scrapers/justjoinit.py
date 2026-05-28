@@ -50,6 +50,16 @@ class JustJoinItScraper:
 
         return all_offers[:max_offers]
 
+
+    def run_scrape(self, max_offers : int = 1000):
+        offers = self.fetch_offers(max_offers)
+
+        new_count = save_offers(offers)
+        duplicates = len(offers) - new_count
+        return f"Found {new_count} new offers to database and skipped {duplicates} duplicates"
+
+
+
 def main():
     scraper = JustJoinItScraper()
     offers = scraper.fetch_offers(1000)

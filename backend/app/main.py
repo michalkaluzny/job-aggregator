@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.models.job_offer_response import JobOfferResponse
 from app.database.repository import get_offer_by_guid, get_offers
 from app.models.paginated_response import PaginatedOfferResponse
+from app.scrapers.justjoinit import JustJoinItScraper
 import math
 
 app = FastAPI(
@@ -74,5 +75,12 @@ def get_offer(guid: str):
     if offer is None:
         raise HTTPException(status_code=404, detail=f"Offer with guid '{guid}' not found")
     return offer
+
+@app.post('/scrape')
+def scrape_offers():
+    scraper = JustJoinItScraper()
+    result = scraper.run_scrape(100)
+    return {"message": result}
+
 
 
