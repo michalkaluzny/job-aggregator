@@ -61,6 +61,7 @@ class JustJoinItScraper:
 
 
 def main():
+    '''
     scraper = JustJoinItScraper()
     offers = scraper.fetch_offers(1000)
     if not offers:
@@ -80,8 +81,4 @@ def main():
     print(f"\nFirst offer: {first.title} @ {first.company_name}")
     print(f"  Location: {first.locations[0].city}")
     print(f"  URL: {first.url}")
-
-
-
-if __name__ == '__main__':
-    main()
+    '''

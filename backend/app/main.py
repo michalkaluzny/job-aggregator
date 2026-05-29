@@ -1,15 +1,28 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from app.models.job_offer_response import JobOfferResponse
 from app.database.repository import get_offer_by_guid, get_offers
 from app.models.paginated_response import PaginatedOfferResponse
 from app.scrapers.justjoinit import JustJoinItScraper
+from apscheduler.schedulers.background import BackgroundScheduler
 import math
+
+scheduler = BackgroundScheduler()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    scraper = JustJoinItScraper()
+    scheduler.add_job(scraper.run_scrape, "interval", hours=6)
+    scheduler.start()
+    yield
+    scheduler.shutdown()
 
 app = FastAPI(
     title="Job Aggregator API",
     description="Aggregates software engineering job offers",
-    version="0.1.0"
+    version="0.1.0",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -81,6 +94,7 @@ def scrape_offers():
     scraper = JustJoinItScraper()
     result = scraper.run_scrape(100)
     return {"message": result}
+
 
 
 
