@@ -16,9 +16,11 @@ function formatSalary(
   return `up to ${fmt(to!)} ${curr}`;
 }
 
-function getRelativeTime(dateStr: string): string {
-  const diffMs = Date.now() - new Date(dateStr).getTime();
-  const days = Math.floor(diffMs / 86_400_000);
+function getOfferAge(dateStr: string): number {
+  return Math.floor((Date.now() - new Date(dateStr).getTime()) / 86_400_000);
+}
+
+function getRelativeTime(days: number): string {
   if (days === 0) return 'Today';
   if (days === 1) return 'Yesterday';
   if (days < 7) return `${days} days ago`;
@@ -132,6 +134,8 @@ export function OfferCard({ offer }: OfferCardProps) {
   const visibleSkills = skills.slice(0, MAX_SKILLS_VISIBLE);
   const hiddenSkillCount = skills.length - MAX_SKILLS_VISIBLE;
   const cities = offer.locations.map((l) => l.city).filter(Boolean);
+  const ageDays = getOfferAge(offer.published_at);
+  const isNew = ageDays <= 1;
 
   return (
     <article
@@ -143,9 +147,16 @@ export function OfferCard({ offer }: OfferCardProps) {
         <CompanyLogo logoUrl={offer.company_logo_url} companyName={offer.company_name} />
 
         <div className="flex-1 min-w-0">
-          <h2 className="font-bold text-slate-900 dark:text-white text-base leading-snug group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate">
-            {offer.title}
-          </h2>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h2 className="font-bold text-slate-900 dark:text-white text-base leading-snug group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate">
+              {offer.title}
+            </h2>
+            {isNew && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 flex-shrink-0">
+                New!
+              </span>
+            )}
+          </div>
 
           <div className="flex items-center gap-2 mt-0.5 flex-wrap">
             <span className="text-sm text-slate-600 dark:text-slate-400 font-medium">
@@ -233,7 +244,7 @@ export function OfferCard({ offer }: OfferCardProps) {
       {/* Footer: posted time */}
       <div className="flex justify-end mt-3">
         <span className="text-xs text-slate-400 dark:text-slate-500">
-          {getRelativeTime(offer.published_at)}
+          {getRelativeTime(ageDays)}
         </span>
       </div>
     </article>
