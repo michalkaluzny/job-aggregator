@@ -9,6 +9,7 @@ const DEFAULT_FILTERS: Filters = {
   workplace_type: '',
   city: '',
   skill: '',
+  title: '',
 };
 
 const DEFAULT_SORT: SortOptions = {
@@ -25,6 +26,7 @@ function readFiltersFromUrl(): Filters {
     workplace_type: p.get('workplace') ?? '',
     city: p.get('city') ?? '',
     skill: p.get('skill') ?? '',
+    title: p.get('title') ?? '',
   };
 }
 
@@ -50,6 +52,7 @@ function syncToUrl(filters: Filters, sort: SortOptions, page: number) {
   if (filters.workplace_type) p.set('workplace', filters.workplace_type);
   if (filters.city) p.set('city', filters.city);
   if (filters.skill) p.set('skill', filters.skill);
+  if (filters.title) p.set('title', filters.title);
   if (sort.sort_by !== 'published_at') p.set('sort_by', sort.sort_by);
   if (sort.order !== 'desc') p.set('order', sort.order);
   if (page !== 1) p.set('page', String(page));
@@ -74,11 +77,12 @@ export function useOffers() {
   // Debounce text inputs so the API is not called on every keystroke
   const debouncedCity = useDebounce(filters.city, DEBOUNCE_MS);
   const debouncedSkill = useDebounce(filters.skill, DEBOUNCE_MS);
+  const debouncedTitle = useDebounce(filters.title, DEBOUNCE_MS);
 
   useEffect(() => {
     // Sync debounced values to URL (not raw values, to avoid flicker while typing)
     syncToUrl(
-      { ...filters, city: debouncedCity, skill: debouncedSkill },
+      { ...filters, city: debouncedCity, skill: debouncedSkill, title: debouncedTitle },
       sort,
       page
     );
@@ -107,6 +111,7 @@ export function useOffers() {
       if (filters.workplace_type) params.workplace_type = filters.workplace_type;
       if (debouncedCity) params.city = debouncedCity;
       if (debouncedSkill) params.skill = debouncedSkill;
+      if (debouncedTitle) params.title = debouncedTitle;
 
       try {
         const result = await fetchOffers(params);
@@ -133,6 +138,7 @@ export function useOffers() {
     filters.workplace_type,
     debouncedCity,
     debouncedSkill,
+    debouncedTitle,
     sort.sort_by,
     sort.order,
     page,

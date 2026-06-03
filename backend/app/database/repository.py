@@ -66,6 +66,7 @@ def get_offers(
     working_time: str | None = None,
     city: str | None = None,
     skill: str | None = None,
+    title: str | None = None,
     sort_by: str = "published_at",
     order: str = "desc",
     offset: int = 0,
@@ -92,6 +93,9 @@ def get_offers(
 
         if skill:
             filters.append(JobOfferDB.required_skills.contains(skill))
+
+        if title:
+            filters.append(JobOfferDB.title.ilike(f"%{title}%"))
 
         for f in filters:
             stmt = stmt.where(f)
@@ -132,6 +136,17 @@ def get_offer_by_guid(guid: str) -> JobOfferDB | None:
             .options(selectinload(JobOfferDB.locations))
         )
         return session.execute(stmt).scalars().one_or_none()
+
+def get_distinct_cities() -> list[str]:
+    """Returns all distinct city names sorted alphabetically."""
+    with SessionLocal() as session:
+        result = session.execute(
+            select(LocationDB.city)
+            .distinct()
+            .where(LocationDB.city.isnot(None))
+            .order_by(LocationDB.city)
+        )
+        return [row[0] for row in result.all()]
 
 def delete_expired_offers() -> int:
     """Deletes offers where expires_at has passed. Returns count of deleted offers."""

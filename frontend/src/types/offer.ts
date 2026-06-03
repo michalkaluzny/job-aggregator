@@ -41,6 +41,7 @@ export interface Filters {
   workplace_type: string;
   city: string;
   skill: string;
+  title: string;
 }
 
 export interface SortOptions {

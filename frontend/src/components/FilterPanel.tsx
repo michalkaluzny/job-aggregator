@@ -1,4 +1,5 @@
 import { Filters, JuniorType } from '../types/offer';
+import { CityAutocomplete } from './CityAutocomplete';
 
 interface FilterPanelProps {
   filters: Filters;
@@ -16,7 +17,8 @@ export function FilterPanel({ filters, onUpdate, onReset }: FilterPanelProps) {
     filters.juniorType !== 'junior' ||
     filters.workplace_type !== '' ||
     filters.city !== '' ||
-    filters.skill !== '';
+    filters.skill !== '' ||
+    filters.title !== '';
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5 space-y-5">
@@ -73,18 +75,29 @@ export function FilterPanel({ filters, onUpdate, onReset }: FilterPanelProps) {
         </select>
       </div>
 
+      {/* Job title */}
+      <div>
+        <label htmlFor="filter-title" className={labelClass}>
+          Job title
+        </label>
+        <input
+          id="filter-title"
+          type="text"
+          placeholder="e.g. Python Developer"
+          value={filters.title}
+          onChange={(e) => onUpdate({ title: e.target.value })}
+          className={inputClass}
+        />
+      </div>
+
       {/* City */}
       <div>
         <label htmlFor="filter-city" className={labelClass}>
           City
         </label>
-        <input
-          id="filter-city"
-          type="text"
-          placeholder="e.g. Warszawa"
+        <CityAutocomplete
           value={filters.city}
-          onChange={(e) => onUpdate({ city: e.target.value })}
-          className={inputClass}
+          onChange={(city) => onUpdate({ city })}
         />
       </div>
 

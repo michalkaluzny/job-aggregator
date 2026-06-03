@@ -32,7 +32,8 @@ export default function App() {
     filters.juniorType !== 'junior' ||
     filters.workplace_type !== '' ||
     filters.city !== '' ||
-    filters.skill !== '';
+    filters.skill !== '' ||
+    filters.title !== '';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 dark:from-slate-900 dark:to-slate-900">
