@@ -1,6 +1,9 @@
 import httpx
+import logging
 from app.models.job_offer import JobOffer
 from app.database.repository import save_offers
+
+logger = logging.getLogger(__name__)
 class JustJoinItScraper:
 
     BASE_URL = 'https://justjoin.it/api/candidate-api/offers'
@@ -16,7 +19,7 @@ class JustJoinItScraper:
         )
 
         if response.status_code != 200:
-            print(f"Error: {response.status_code}")
+            logger.error(f"JustJoinIt API error: {response.status_code}")
             return []
 
         data = response.json()
@@ -30,7 +33,7 @@ class JustJoinItScraper:
             try:
                 parsed.append(JobOffer.from_api(raw))
             except Exception as e:
-                print(f"Failed to parse offer {raw.get('guid', 'unknown')}: {e}")
+                logger.warning(f"Failed to parse offer {raw.get('guid', 'unknown')}: {e}")
 
         return parsed
 
@@ -51,34 +54,11 @@ class JustJoinItScraper:
         return all_offers[:max_offers]
 
 
-    def run_scrape(self, max_offers : int = 1000):
+    def run_scrape(self, max_offers: int = 1000):
+        logger.info(f"Scraping started (max {max_offers} offers)")
         offers = self.fetch_offers(max_offers)
-
         new_count = save_offers(offers)
         duplicates = len(offers) - new_count
-        return f"Found {new_count} new offers to database and skipped {duplicates} duplicates"
-
-
-
-def main():
-    '''
-    scraper = JustJoinItScraper()
-    offers = scraper.fetch_offers(1000)
-    if not offers:
-        print("No offers to display")
-        return
-
-    print(f"Found {len(offers)} offers from API")
-
-    #Save to databse
-    new_count = save_offers(offers)
-    duplicates = len(offers) - new_count
-
-    print(f"Saved {new_count} new offers to database")
-    print(f"Skipped {duplicates} duplicates")
-
-    first = offers[0]
-    print(f"\nFirst offer: {first.title} @ {first.company_name}")
-    print(f"  Location: {first.locations[0].city}")
-    print(f"  URL: {first.url}")
-    '''
+        result = f"Scraped {len(offers)} offers — {new_count} new, {duplicates} duplicates"
+        logger.info(result)
+        return result

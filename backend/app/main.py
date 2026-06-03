@@ -6,17 +6,23 @@ from app.database.repository import get_offer_by_guid, get_offers
 from app.models.paginated_response import PaginatedOfferResponse
 from app.scrapers.justjoinit import JustJoinItScraper
 from apscheduler.schedulers.background import BackgroundScheduler
+import logging
 import math
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 scheduler = BackgroundScheduler()
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_app: FastAPI):
     scraper = JustJoinItScraper()
-    scheduler.add_job(scraper.run_scrape, "interval", hours=6)
+    scheduler.add_job(scraper.run_scrape, "interval", hours=12, args=[1000])
     scheduler.start()
+    logger.info("Scheduler started — scraping every 12 hours")
     yield
     scheduler.shutdown()
+    logger.info("Scheduler stopped")
 
 app = FastAPI(
     title="Job Aggregator API",
@@ -92,7 +98,7 @@ def get_offer(guid: str):
 @app.post('/scrape')
 def scrape_offers():
     scraper = JustJoinItScraper()
-    result = scraper.run_scrape(100)
+    result = scraper.run_scrape(1000)
     return {"message": result}
 
 
