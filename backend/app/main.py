@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from app.models.job_offer_response import JobOfferResponse
-from app.database.repository import get_offer_by_guid, get_offers
+from app.database.repository import get_offer_by_guid, get_offers, delete_expired_offers
 from app.models.paginated_response import PaginatedOfferResponse
 from app.scrapers.justjoinit import JustJoinItScraper
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -18,8 +18,9 @@ scheduler = BackgroundScheduler()
 async def lifespan(_app: FastAPI):
     scraper = JustJoinItScraper()
     scheduler.add_job(scraper.run_scrape, "interval", hours=12, args=[1000])
+    scheduler.add_job(delete_expired_offers, "interval", hours=12)
     scheduler.start()
-    logger.info("Scheduler started — scraping every 12 hours")
+    logger.info("Scheduler started — scraping and cleanup every 12 hours")
     yield
     scheduler.shutdown()
     logger.info("Scheduler stopped")

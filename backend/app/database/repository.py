@@ -3,7 +3,10 @@ from app.models.job_offer import JobOffer
 from app.models.job_offer_db import JobOfferDB, LocationDB
 from sqlalchemy import select, func, desc, asc
 from sqlalchemy.orm import selectinload
+import logging
+from datetime import datetime, timezone
 
+logger = logging.getLogger(__name__)
 def save_offers(offers: list[JobOffer]) -> int:
     """
     Saves offers to the database, skipping duplicates by guid.
@@ -129,5 +132,20 @@ def get_offer_by_guid(guid: str) -> JobOfferDB | None:
             .options(selectinload(JobOfferDB.locations))
         )
         return session.execute(stmt).scalars().one_or_none()
+
+def delete_expired_offers() -> int:
+    """Deletes offers where expires_at has passed. Returns count of deleted offers."""
+    now = datetime.now(tz=timezone.utc)
+    with SessionLocal() as session:
+        stmt = select(JobOfferDB).where(
+            JobOfferDB.expires_at.isnot(None),
+            JobOfferDB.expires_at < now,
+        )
+        expired = list(session.execute(stmt).scalars().all())
+        for offer in expired:
+            session.delete(offer)
+        session.commit()
+    logger.info(f"Deleted {len(expired)} expired offers")
+    return len(expired)
 
 
