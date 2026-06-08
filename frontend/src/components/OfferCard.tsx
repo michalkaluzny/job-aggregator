@@ -1,91 +1,18 @@
 import { useState } from 'react';
 import { Offer } from '../types/offer';
-
-// ─── Helpers ────────────────────────────────────────────────────────────────
-
-function formatSalary(
-  from: number | null,
-  to: number | null,
-  currency: string | null
-): string | null {
-  if (!from && !to) return null;
-  const curr = currency ?? 'PLN';
-  const fmt = (n: number) => n.toLocaleString('pl-PL');
-  if (from && to) return `${fmt(from)} – ${fmt(to)} ${curr}`;
-  if (from) return `from ${fmt(from)} ${curr}`;
-  return `up to ${fmt(to!)} ${curr}`;
-}
-
-function getOfferAge(dateStr: string): number {
-  return Math.floor((Date.now() - new Date(dateStr).getTime()) / 86_400_000);
-}
-
-function getRelativeTime(days: number): string {
-  if (days === 0) return 'Today';
-  if (days === 1) return 'Yesterday';
-  if (days < 7) return `${days} days ago`;
-  if (days < 30) return `${Math.floor(days / 7)} weeks ago`;
-  return `${Math.floor(days / 30)} months ago`;
-}
-
-function parseSkills(raw: string | null): string[] {
-  if (!raw) return [];
-  return raw.split(',').map((s) => s.trim()).filter(Boolean);
-}
-
-// Picks a consistent gradient color based on the first character of the name
-function getAvatarGradient(name: string): string {
-  const gradients = [
-    'from-indigo-400 to-indigo-600',
-    'from-violet-400 to-violet-600',
-    'from-blue-400 to-blue-600',
-    'from-emerald-400 to-emerald-600',
-    'from-rose-400 to-rose-600',
-    'from-amber-400 to-amber-600',
-    'from-cyan-400 to-cyan-600',
-    'from-pink-400 to-pink-600',
-  ];
-  return gradients[(name.charCodeAt(0) ?? 0) % gradients.length];
-}
-
-function getCompanyInitials(name: string): string {
-  return name
-    .split(' ')
-    .slice(0, 2)
-    .map((w) => w[0])
-    .join('')
-    .toUpperCase();
-}
-
-// ─── Badge helpers ───────────────────────────────────────────────────────────
-
-const EXPERIENCE_COLORS: Record<string, string> = {
-  junior: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-300',
-  mid: 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300',
-  senior: 'bg-violet-100 text-violet-800 dark:bg-violet-900/50 dark:text-violet-300',
-};
-
-const WORKPLACE_COLORS: Record<string, string> = {
-  remote: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300',
-  hybrid: 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300',
-  office: 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300',
-};
-
-const WORKING_TIME_COLORS: Record<string, string> = {
-  internship: 'bg-rose-100 text-rose-800 dark:bg-rose-900/50 dark:text-rose-300',
-  full_time: 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300',
-  part_time: 'bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-300',
-};
-
-const DEFAULT_BADGE = 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300';
-
-function badgeColor(map: Record<string, string>, key: string | null): string {
-  return (key && map[key]) || DEFAULT_BADGE;
-}
-
-function formatLabel(value: string): string {
-  return value.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-}
+import {
+  formatSalary,
+  parseSkills,
+  getAvatarGradient,
+  getCompanyInitials,
+  formatLabel,
+  getOfferAge,
+  getRelativeTime,
+  EXPERIENCE_COLORS,
+  WORKPLACE_COLORS,
+  WORKING_TIME_COLORS,
+  badgeColor,
+} from '../utils/offer';
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
@@ -124,11 +51,12 @@ function CompanyLogo({ logoUrl, companyName }: { logoUrl: string | null; company
 
 interface OfferCardProps {
   offer: Offer;
+  onSelect: (guid: string) => void;
 }
 
 const MAX_SKILLS_VISIBLE = 5;
 
-export function OfferCard({ offer }: OfferCardProps) {
+export function OfferCard({ offer, onSelect }: OfferCardProps) {
   const salary = formatSalary(offer.salary_from, offer.salary_to, offer.salary_currency);
   const skills = parseSkills(offer.required_skills);
   const visibleSkills = skills.slice(0, MAX_SKILLS_VISIBLE);
@@ -139,7 +67,7 @@ export function OfferCard({ offer }: OfferCardProps) {
 
   return (
     <article
-      onClick={() => window.open(offer.url, '_blank', 'noopener,noreferrer')}
+      onClick={() => onSelect(offer.guid)}
       className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-5 cursor-pointer hover:-translate-y-1 hover:shadow-md transition-all duration-200 group"
     >
       {/* Top row: logo + title/company + salary */}

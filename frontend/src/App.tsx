@@ -9,10 +9,12 @@ import { LoadingSkeleton } from './components/LoadingSkeleton';
 import { EmptyState } from './components/EmptyState';
 import { ErrorState } from './components/ErrorState';
 import { Pagination } from './components/Pagination';
+import { OfferDrawer } from './components/OfferDrawer';
 
 export default function App() {
   const { isDark, toggle } = useDarkMode();
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [selectedGuid, setSelectedGuid] = useState<string | null>(null);
 
   const {
     data,
@@ -113,7 +115,7 @@ export default function App() {
               <>
                 <div className="space-y-4">
                   {data.items.map((offer) => (
-                    <OfferCard key={offer.guid} offer={offer} />
+                    <OfferCard key={offer.guid} offer={offer} onSelect={setSelectedGuid} />
                   ))}
                 </div>
                 <Pagination
@@ -129,6 +131,8 @@ export default function App() {
           </div>
         </div>
       </main>
+
+      <OfferDrawer guid={selectedGuid} onClose={() => setSelectedGuid(null)} />
 
       <footer className="mt-12 border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-slate-400 dark:text-slate-500">

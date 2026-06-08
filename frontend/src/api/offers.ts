@@ -1,4 +1,4 @@
-import { PaginatedResponse } from '../types/offer';
+import { PaginatedResponse, Offer } from '../types/offer';
 import { API_BASE_URL } from '../constants';
 
 type QueryParams = Record<string, string | number | undefined>;
@@ -17,4 +17,12 @@ export async function fetchOffers(params: QueryParams): Promise<PaginatedRespons
     throw new Error(`Server returned ${response.status}: ${response.statusText}`);
   }
   return response.json() as Promise<PaginatedResponse>;
+}
+
+export async function fetchOffer(guid: string): Promise<Offer> {
+  const response = await fetch(`${API_BASE_URL}/offers/${guid}`);
+  if (!response.ok) {
+    throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+  }
+  return response.json() as Promise<Offer>;
 }
