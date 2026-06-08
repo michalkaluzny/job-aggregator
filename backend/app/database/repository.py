@@ -99,7 +99,7 @@ def get_offers(
             filters.append(JobOfferDB.working_time == working_time)
 
         if skill:
-            filters.append(JobOfferDB.required_skills.contains(skill))
+            filters.append(JobOfferDB.required_skills.ilike(f"%{skill}%"))
 
         if title:
             filters.append(JobOfferDB.title.ilike(f"%{title}%"))
@@ -174,20 +174,31 @@ def get_distinct_cities() -> list[str]:
         return sorted(result, key=str.lower)
 
 def get_distinct_skills() -> list[str]:
-    """Returns all distinct skills parsed from comma-separated required_skills, sorted."""
+    """Returns distinct skills, merging case- and diacritic-equivalent variants.
+
+    For each equivalent group (e.g. "Python"/"python"/"PYTHON"), returns the
+    most commonly stored spelling.
+    """
     with SessionLocal() as session:
         result = session.execute(
             select(JobOfferDB.required_skills)
             .where(JobOfferDB.required_skills.isnot(None))
             .where(JobOfferDB.required_skills != "")
         )
-        unique_skills: set[str] = set()
+
+        groups: dict[str, Counter[str]] = {}
         for (skills_str,) in result.all():
             for skill in skills_str.split(","):
                 skill = skill.strip()
-                if skill:
-                    unique_skills.add(skill)
-        return sorted(unique_skills, key=str.lower)
+                if not skill:
+                    continue
+                key = _normalize_key(skill)
+                if not key:
+                    continue
+                groups.setdefault(key, Counter())[skill] += 1
+
+        cleaned = [counter.most_common(1)[0][0] for counter in groups.values()]
+        return sorted(cleaned, key=str.lower)
 
 def delete_expired_offers() -> int:
     """Deletes offers where expires_at has passed. Returns count of deleted offers."""
