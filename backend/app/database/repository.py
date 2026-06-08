@@ -3,10 +3,17 @@ from app.models.job_offer import JobOffer
 from app.models.job_offer_db import JobOfferDB, LocationDB
 from sqlalchemy import select, func, desc, asc
 from sqlalchemy.orm import selectinload
+from collections import Counter
 import logging
+import unicodedata
 from datetime import datetime, timezone
 
 logger = logging.getLogger(__name__)
+
+def _normalize_key(name: str) -> str:
+    """Lowercase + strip whitespace + remove diacritics. Used to group equivalent names."""
+    nfd = unicodedata.normalize("NFD", name.strip().lower())
+    return "".join(c for c in nfd if not unicodedata.combining(c))
 def save_offers(offers: list[JobOffer]) -> int:
     """
     Saves offers to the database, skipping duplicates by guid.
@@ -102,17 +109,25 @@ def get_offers(
             count_stmt = count_stmt.where(f)
 
         if city:
-            stmt = (
-                stmt
-                .join(LocationDB, LocationDB.offer_guid == JobOfferDB.guid)
-                .where(LocationDB.city == city)
-                .distinct()
-            )
-            count_stmt = (
-                count_stmt
-                .join(LocationDB, LocationDB.offer_guid == JobOfferDB.guid)
-                .where(LocationDB.city == city)
-            )
+            # Match any DB variant that normalizes to the same key (case/diacritic-insensitive)
+            all_cities = session.execute(
+                select(LocationDB.city).distinct().where(LocationDB.city.isnot(None))
+            ).scalars().all()
+            target_key = _normalize_key(city)
+            matching_cities = [c for c in all_cities if _normalize_key(c) == target_key]
+
+            if matching_cities:
+                stmt = (
+                    stmt
+                    .join(LocationDB, LocationDB.offer_guid == JobOfferDB.guid)
+                    .where(LocationDB.city.in_(matching_cities))
+                    .distinct()
+                )
+                count_stmt = (
+                    count_stmt
+                    .join(LocationDB, LocationDB.offer_guid == JobOfferDB.guid)
+                    .where(LocationDB.city.in_(matching_cities))
+                )
 
         sort_column = getattr(JobOfferDB, sort_by, JobOfferDB.published_at)
         if order == "desc":
@@ -138,15 +153,25 @@ def get_offer_by_guid(guid: str) -> JobOfferDB | None:
         return session.execute(stmt).scalars().one_or_none()
 
 def get_distinct_cities() -> list[str]:
-    """Returns all distinct city names sorted alphabetically."""
+    """Returns distinct city names, merging case- and diacritic-equivalent variants.
+
+    For each equivalent group (e.g. "Krakow"/"Kraków"/"krakow"), returns the
+    most commonly stored spelling.
+    """
     with SessionLocal() as session:
-        result = session.execute(
-            select(LocationDB.city)
-            .distinct()
-            .where(LocationDB.city.isnot(None))
-            .order_by(LocationDB.city)
+        rows = session.execute(
+            select(LocationDB.city).where(LocationDB.city.isnot(None))
         )
-        return [row[0] for row in result.all()]
+
+        groups: dict[str, Counter[str]] = {}
+        for (city,) in rows.all():
+            key = _normalize_key(city)
+            if not key:
+                continue
+            groups.setdefault(key, Counter())[city] += 1
+
+        result = [counter.most_common(1)[0][0] for counter in groups.values()]
+        return sorted(result, key=str.lower)
 
 def get_distinct_skills() -> list[str]:
     """Returns all distinct skills parsed from comma-separated required_skills, sorted."""
