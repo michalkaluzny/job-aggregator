@@ -1,25 +1,20 @@
 import { useState, useEffect, useRef } from 'react';
-import { API_BASE_URL } from '../constants';
 
-interface CityAutocompleteProps {
+interface AutocompleteProps {
+  id: string;
   value: string;
-  onChange: (city: string) => void;
+  onChange: (value: string) => void;
+  items: string[];
+  placeholder?: string;
 }
 
 const MAX_SUGGESTIONS = 8;
 
-export function CityAutocomplete({ value, onChange }: CityAutocompleteProps) {
-  const [cities, setCities] = useState<string[]>([]);
+// Generic autocomplete input with dropdown.
+// Parent fetches the `items` list and decides where the data comes from.
+export function Autocomplete({ id, value, onChange, items, placeholder }: AutocompleteProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  // Fetch all cities once on mount
-  useEffect(() => {
-    fetch(`${API_BASE_URL}/cities`)
-      .then((r) => r.json())
-      .then((data: string[]) => setCities(data))
-      .catch(() => {});
-  }, []);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -33,8 +28,8 @@ export function CityAutocomplete({ value, onChange }: CityAutocompleteProps) {
   }, []);
 
   const suggestions = value.trim()
-    ? cities
-        .filter((c) => c.toLowerCase().includes(value.toLowerCase()))
+    ? items
+        .filter((item) => item.toLowerCase().includes(value.toLowerCase()))
         .slice(0, MAX_SUGGESTIONS)
     : [];
 
@@ -43,9 +38,9 @@ export function CityAutocomplete({ value, onChange }: CityAutocompleteProps) {
   return (
     <div ref={containerRef} className="relative">
       <input
-        id="filter-city"
+        id={id}
         type="text"
-        placeholder="e.g. Warszawa"
+        placeholder={placeholder}
         value={value}
         autoComplete="off"
         onChange={(e) => {
@@ -57,22 +52,22 @@ export function CityAutocomplete({ value, onChange }: CityAutocompleteProps) {
       />
 
       {showDropdown && (
-        <ul className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg shadow-lg overflow-hidden">
-          {suggestions.map((city) => {
+        <ul className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg shadow-lg overflow-hidden max-h-80 overflow-y-auto">
+          {suggestions.map((item) => {
             // Bold the matching fragment
-            const idx = city.toLowerCase().indexOf(value.toLowerCase());
-            const before = city.slice(0, idx);
-            const match = city.slice(idx, idx + value.length);
-            const after = city.slice(idx + value.length);
+            const idx = item.toLowerCase().indexOf(value.toLowerCase());
+            const before = item.slice(0, idx);
+            const match = item.slice(idx, idx + value.length);
+            const after = item.slice(idx + value.length);
 
             return (
-              <li key={city}>
+              <li key={item}>
                 <button
                   type="button"
                   onMouseDown={(e) => {
                     // onMouseDown fires before onBlur, so the input doesn't lose focus before we set the value
                     e.preventDefault();
-                    onChange(city);
+                    onChange(item);
                     setIsOpen(false);
                   }}
                   className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-slate-600 transition-colors"

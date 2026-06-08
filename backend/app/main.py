@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from app.models.job_offer_response import JobOfferResponse
-from app.database.repository import get_offer_by_guid, get_offers, delete_expired_offers, get_distinct_cities
+from app.database.repository import get_offer_by_guid, get_offers, delete_expired_offers, get_distinct_cities, get_distinct_skills
 from app.models.paginated_response import PaginatedOfferResponse
 from app.scrapers.justjoinit import JustJoinItScraper
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -102,6 +102,11 @@ def get_offer(guid: str):
 def list_cities():
     """Returns all distinct city names from the database."""
     return get_distinct_cities()
+
+@app.get("/skills", response_model=list[str])
+def list_skills():
+    """Returns all distinct skills from the database."""
+    return get_distinct_skills()
 
 @app.post('/scrape')
 def scrape_offers():

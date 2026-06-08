@@ -1,5 +1,7 @@
+import { useState, useEffect } from 'react';
 import { Filters, JuniorType } from '../types/offer';
-import { CityAutocomplete } from './CityAutocomplete';
+import { API_BASE_URL } from '../constants';
+import { Autocomplete } from './Autocomplete';
 
 interface FilterPanelProps {
   filters: Filters;
@@ -13,6 +15,22 @@ const inputClass =
 const labelClass = 'block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5';
 
 export function FilterPanel({ filters, onUpdate, onReset }: FilterPanelProps) {
+  const [cities, setCities] = useState<string[]>([]);
+  const [skills, setSkills] = useState<string[]>([]);
+
+  // Fetch suggestion lists once on mount
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/cities`)
+      .then((r) => r.json())
+      .then((data: string[]) => setCities(data))
+      .catch(() => {});
+
+    fetch(`${API_BASE_URL}/skills`)
+      .then((r) => r.json())
+      .then((data: string[]) => setSkills(data))
+      .catch(() => {});
+  }, []);
+
   const isModified =
     filters.juniorType !== 'junior' ||
     filters.workplace_type !== '' ||
@@ -95,9 +113,12 @@ export function FilterPanel({ filters, onUpdate, onReset }: FilterPanelProps) {
         <label htmlFor="filter-city" className={labelClass}>
           City
         </label>
-        <CityAutocomplete
+        <Autocomplete
+          id="filter-city"
           value={filters.city}
           onChange={(city) => onUpdate({ city })}
+          items={cities}
+          placeholder="e.g. Warszawa"
         />
       </div>
 
@@ -106,13 +127,12 @@ export function FilterPanel({ filters, onUpdate, onReset }: FilterPanelProps) {
         <label htmlFor="filter-skill" className={labelClass}>
           Technology / Skill
         </label>
-        <input
+        <Autocomplete
           id="filter-skill"
-          type="text"
-          placeholder="e.g. Python, React"
           value={filters.skill}
-          onChange={(e) => onUpdate({ skill: e.target.value })}
-          className={inputClass}
+          onChange={(skill) => onUpdate({ skill })}
+          items={skills}
+          placeholder="e.g. Python, React"
         />
         <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
           Searches in required skills
