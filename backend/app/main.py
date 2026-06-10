@@ -3,11 +3,13 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from app.models.job_offer_response import JobOfferResponse
 from app.database.repository import get_offer_by_guid, get_offers, delete_expired_offers, get_distinct_cities, get_distinct_skills
+from app.database.init_db import init_db
 from app.models.paginated_response import PaginatedOfferResponse
 from app.scrapers.justjoinit import JustJoinItScraper
 from apscheduler.schedulers.background import BackgroundScheduler
 import logging
 import math
+from datetime import datetime
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -17,8 +19,10 @@ scheduler = BackgroundScheduler()
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     scraper = JustJoinItScraper()
-    scheduler.add_job(scraper.run_scrape, "interval", hours=12, args=[1000])
-    scheduler.add_job(delete_expired_offers, "interval", hours=12)
+    init_db()
+    logger.info("Database initialized")
+    scheduler.add_job(scraper.run_scrape, "interval", hours=12, args=[1000], next_run_time=datetime.now())
+    scheduler.add_job(delete_expired_offers, "interval", hours=12, next_run_time=datetime.now())
     scheduler.start()
     logger.info("Scheduler started — scraping and cleanup every 12 hours")
     yield
