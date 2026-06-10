@@ -17,6 +17,10 @@ build/
 # Environment variables
 backend/.env
 .env.local
+frontend/.env
+frontend/.env.local
+frontend/.env.production
+frontend/.env.development
 
 # IDE
 .idea/

@@ -1,3 +1,5 @@
+import { API_BASE_URL } from '../constants';
+
 interface ErrorStateProps {
   message: string;
   onRetry: () => void;
@@ -11,9 +13,9 @@ export function ErrorState({ message, onRetry }: ErrorStateProps) {
         Could not load offers
       </h3>
       <p className="text-slate-500 dark:text-slate-400 max-w-sm mb-2 leading-relaxed">
-        Make sure the backend is running on{' '}
+        Make sure the backend is reachable at{' '}
         <code className="bg-slate-100 dark:bg-slate-700 px-1 py-0.5 rounded text-sm font-mono">
-          http://localhost:8000
+          {API_BASE_URL}
         </code>
         .
       </p>
