@@ -4,6 +4,7 @@ services:
     container_name: job-aggregator-api
     environment:
       - DATABASE_URL=sqlite:////app/data/jobs.db
+      - CORS_ORIGINS=http://localhost:5173
     ports:
       - "8000:8000"
     volumes:

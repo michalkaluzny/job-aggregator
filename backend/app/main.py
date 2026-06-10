@@ -10,6 +10,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 import logging
 import math
 from datetime import datetime
+import os
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -36,9 +37,11 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+CORS_ORIGINS = os.environ.get("CORS_ORIGINS", "http://localhost:5173").split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=CORS_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
 )
