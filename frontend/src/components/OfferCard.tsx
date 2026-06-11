@@ -75,8 +75,8 @@ export function OfferCard({ offer, onSelect }: OfferCardProps) {
         <CompanyLogo logoUrl={offer.company_logo_url} companyName={offer.company_name} />
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h2 className="font-bold text-slate-900 dark:text-white text-base leading-snug group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate">
+          <div className="flex items-center gap-2">
+            <h2 className="font-bold text-slate-900 dark:text-white text-base leading-snug group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate min-w-0">
               {offer.title}
             </h2>
             {isNew && (
@@ -94,7 +94,7 @@ export function OfferCard({ offer, onSelect }: OfferCardProps) {
             {cities.length > 0 && (
               <>
                 <span className="text-slate-300 dark:text-slate-600">·</span>
-                <div className="flex gap-1 flex-wrap">
+                <div className="flex gap-1 flex-wrap min-w-0">
                   {cities.map((city) => (
                     <span
                       key={city}

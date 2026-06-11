@@ -20,7 +20,7 @@ export function SortSelector({ sort, onSort }: SortSelectorProps) {
   const currentKey = toKey(sort);
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 flex-shrink-0">
       <label htmlFor="sort-select" className="text-sm text-slate-500 dark:text-slate-400 whitespace-nowrap hidden sm:block">
         Sort by
       </label>

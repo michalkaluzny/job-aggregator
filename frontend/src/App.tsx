@@ -82,7 +82,7 @@ export default function App() {
           <div className="flex-1 min-w-0">
             {/* Toolbar: results count + sort */}
             <div className="flex items-center justify-between gap-4 mb-4">
-              <p className="text-sm text-slate-500 dark:text-slate-400">
+              <p className="text-sm text-slate-500 dark:text-slate-400 min-w-0 truncate">
                 {loading ? (
                   <span className="bg-slate-200 dark:bg-slate-700 rounded animate-pulse inline-block w-36 h-4" />
                 ) : data ? (
