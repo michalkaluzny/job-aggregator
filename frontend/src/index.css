@@ -16,5 +16,6 @@
   /* Prevent overscroll bounce from revealing browser default background */
   html, body {
     overscroll-behavior: none;
+    overflow-x: hidden;
   }
 }
