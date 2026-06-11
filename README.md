@@ -40,7 +40,9 @@ The app scrapes offers from Polish job boards, normalizes them, and exposes them
 
 <!-- SCREENSHOT: mobile view (375px width) — collapsed filters and offer cards stacked vertically. Browser dev tools mobile preview is fine. -->
 
-![Mobile view](./docs/screenshots/mobile.png)
+<p align="center">
+  <img src="./docs/screenshots/mobile.png" alt="Mobile view" width="320" />
+</p>
 
 ### Backend
 - **Paginated, filtered API** with sort options
