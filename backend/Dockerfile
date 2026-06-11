@@ -16,5 +16,7 @@ COPY app ./app
 # Expose port 8000 (informational only)
 EXPOSE 8000
 
-# Command to run when container starts
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Command to run when container starts.
+# Shell form so ${PORT} is expanded — falls back to 8000 locally,
+# uses the host-provided port (e.g. Render) when set.
+CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}

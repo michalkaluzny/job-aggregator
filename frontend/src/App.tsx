@@ -138,7 +138,7 @@ export default function App() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-slate-400 dark:text-slate-500">
           <span>© {new Date().getFullYear()} JuniorHub</span>
           <a
-            href="https://github.com"
+            href="https://github.com/michalkaluzny/job-aggregator"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
