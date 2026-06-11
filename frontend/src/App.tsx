@@ -68,7 +68,7 @@ export default function App() {
           )}
         </button>
 
-        <div className="flex flex-col md:flex-row gap-6 items-start">
+        <div className="flex flex-col md:flex-row gap-6 md:items-start">
           {/* Sidebar / collapsible filter panel */}
           <aside className={`w-full md:w-64 lg:w-72 flex-shrink-0 md:sticky md:top-20 ${filtersOpen ? 'block' : 'hidden'} md:block`}>
             <FilterPanel
