@@ -31,7 +31,7 @@ class JustJoinItScraper:
         parsed = []
         for raw in raw_offers:
             try:
-                parsed.append(JobOffer.from_api(raw))
+                parsed.append(JobOffer.from_justjoinit(raw))
             except Exception as e:
                 logger.warning(f"Failed to parse offer {raw.get('guid', 'unknown')}: {e}")
 

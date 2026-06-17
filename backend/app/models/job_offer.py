@@ -44,7 +44,7 @@ class JobOffer(BaseModel):
     apply_url: str | None = None  # from api
 
     @classmethod
-    def from_api(cls, raw: dict) -> "JobOffer":
+    def from_justjoinit(cls, raw: dict) -> "JobOffer":
         salary_from = None
         salary_to = None
         salary_currency = None
