@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import datetime, timezone
 
 class Location(BaseModel):
     city: str
@@ -79,3 +79,78 @@ class JobOffer(BaseModel):
             url=f"https://justjoin.it/job-offer/{raw['slug']}",
             apply_url=raw.get("applyUrl"),
         )
+
+    @classmethod
+    def from_nofluffjobs(cls, raw: dict) -> "JobOffer":
+        # Salary — NoFluffJobs keeps it in a single dict, not a list.
+        # Only treat it as real money when it's disclosed and non-zero.
+        salary_from = None
+        salary_to = None
+        salary_currency = None
+
+        salary = raw.get("salary") or {}
+        if salary.get("disclosedAt") == "VISIBLE" and salary.get("from"):
+            salary_from = salary.get("from")
+            salary_to = salary.get("to")
+            salary_currency = salary.get("currency")
+
+        # Workplace — derived from two separate flags.
+        location = raw.get("location") or {}
+        if raw.get("fullyRemote"):
+            workplace_type = "remote"
+        elif location.get("hybridDesc"):
+            workplace_type = "hybrid"
+        else:
+            workplace_type = "office"
+
+        # Working time — only the intern signal is reliable here.
+        working_time = "internship" if salary.get("type") == "intern" else "full_time"
+
+        # Seniority comes as a list (e.g. ["Trainee"]); lowercase to match JustJoinIt.
+        seniority = raw.get("seniority") or []
+        experience_level = seniority[0].lower() if seniority else "unknown"
+
+        # Locations — flatten places, pulling lat/long out of the nested geoLocation.
+        locations = [
+            Location(
+                city=place["city"],
+                street=place.get("street") or None,
+                latitude=place.get("geoLocation", {}).get("latitude"),
+                longitude=place.get("geoLocation", {}).get("longitude"),
+            )
+            for place in location.get("places", [])
+            if place.get("city")
+        ]
+
+        # Required skills live in tiles, mixed with other tile types.
+        tiles = raw.get("tiles", {}).get("values", [])
+        required_skills = [t["value"] for t in tiles if t.get("type") == "requirement"]
+
+        # Logo paths are relative — prepend the static asset host.
+        logo_path = raw.get("logo", {}).get("jobs_details")
+        company_logo_url = f"https://static.nofluffjobs.com/{logo_path}" if logo_path else None
+
+        # `posted` is epoch milliseconds, not an ISO string.
+        published_at = datetime.fromtimestamp(raw["posted"] / 1000, tz=timezone.utc)
+
+        return cls(
+            guid=raw["id"],
+            slug=raw["url"],
+            title=raw["title"],
+            company_name=raw["name"],
+            company_logo_url=company_logo_url,
+            experience_level=experience_level,
+            workplace_type=workplace_type,
+            working_time=working_time,
+            locations=locations,
+            salary_from=salary_from,
+            salary_to=salary_to,
+            salary_currency=salary_currency,
+            required_skills=required_skills,
+            nice_to_have_skills=[],
+            published_at=published_at,
+            expires_at=None,
+            url=f"https://nofluffjobs.com/job/{raw['url']}",
+            apply_url=None,
+        )
+

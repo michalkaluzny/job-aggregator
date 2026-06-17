@@ -6,6 +6,7 @@ from app.database.repository import get_offer_by_guid, get_offers, delete_expire
 from app.database.init_db import init_db
 from app.models.paginated_response import PaginatedOfferResponse
 from app.scrapers.justjoinit import JustJoinItScraper
+from app.scrapers.nofluffjobs import NoFluffJobsScraper
 from apscheduler.schedulers.background import BackgroundScheduler
 import logging
 import math
@@ -19,10 +20,12 @@ scheduler = BackgroundScheduler()
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    scraper = JustJoinItScraper()
+    justjoinit = JustJoinItScraper()
+    nofluffjobs = NoFluffJobsScraper()
     init_db()
     logger.info("Database initialized")
-    scheduler.add_job(scraper.run_scrape, "interval", hours=12, args=[1000], next_run_time=datetime.now())
+    scheduler.add_job(justjoinit.run_scrape, "interval", hours=12, args=[1000], next_run_time=datetime.now())
+    scheduler.add_job(nofluffjobs.run_scrape, "interval", hours=12, args=[1000], next_run_time=datetime.now())
     scheduler.add_job(delete_expired_offers, "interval", hours=12, next_run_time=datetime.now())
     scheduler.start()
     logger.info("Scheduler started — scraping and cleanup every 12 hours")
