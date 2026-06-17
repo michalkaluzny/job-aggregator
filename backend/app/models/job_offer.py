@@ -134,7 +134,7 @@ class JobOffer(BaseModel):
         published_at = datetime.fromtimestamp(raw["posted"] / 1000, tz=timezone.utc)
 
         return cls(
-            guid=raw["id"],
+            guid=raw["reference"],
             slug=raw["url"],
             title=raw["title"],
             company_name=raw["name"],
